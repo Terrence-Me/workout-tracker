@@ -3,22 +3,64 @@ const db = require("../models");
 module.exports = function (app) {
   // App.get to pull up info for the workouts page
   app.get("/api/workouts", (req, res) => {
-    db.Workout.find({})
-      .then((dbWorkout) => {
-        res.json(dbWorkout);
+    //   db.Workout.find({})
+    //     .then((dbWorkout) => {
+    //       res.json(dbWorkout);
+    //     })
+    //     .catch((err) => {
+    //       res.status(400).json(err);
+    //     });
+    // });
+    db.Workout.aggregate([
+      {
+        $addFields: {
+          totalDuration: { $sum: "$exercises.duration" },
+        },
+      },
+      {
+        $sort: { day: 1 },
+      },
+    ])
+      .then((data) => {
+        console.log(data);
+        console.log(data[0].exercises);
+        res.json(data);
       })
       .catch((err) => {
-        res.status(400).json(err);
+        res.json(err);
       });
   });
+
   // App.get to pull up info for the range page
   app.get("/api/workouts/range", ({}, res) => {
-    db.Workout.find({})
-      .then((dbWorkout) => {
-        res.json(dbWorkout);
+    // db.Workout.find({})
+    //   .then((dbWorkout) => {
+    //     res.json(dbWorkout);
+    //   })
+    //   .catch((err) => {
+    //     res.status(400).json(err);
+    //   });
+
+    db.Workout.aggregate([
+      {
+        $addFields: {
+          totalDuration: { $sum: "$exercises.duration" },
+        },
+      },
+      {
+        $sort: { day: -1 },
+      },
+      {
+        $limit: 7,
+      },
+    ])
+      .then((data) => {
+        console.log(data);
+        console.log(data[0].exercises);
+        res.json(data);
       })
       .catch((err) => {
-        res.status(400).json(err);
+        res.json(err);
       });
   });
   // App.post to submit new completed workouts
